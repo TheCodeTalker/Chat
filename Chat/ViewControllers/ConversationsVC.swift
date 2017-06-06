@@ -20,8 +20,10 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         let button  = UIBarButtonItem.init(image: image, style: .plain, target: self, action: #selector(ConversationsVC.showProfile))
         return button
     }()
-    var items = [Conversation]()
-    var selectedUser: User?
+    var items = [Group]()
+    var selectedGroup: String?
+    var selectedName: String?
+    var currentGroup :Group?
     
     //MARK: Methods
     func customization()  {
@@ -34,8 +36,13 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         NotificationCenter.default.addObserver(self, selector: #selector(self.showEmailAlert), name: Notification.Name.UIApplicationDidBecomeActive, object: nil)
         //right bar button
         let icon = UIImage.init(named: "compose")?.withRenderingMode(.alwaysOriginal)
-        let rightButton = UIBarButtonItem.init(image: icon!, style: .plain, target: self, action: #selector(ConversationsVC.showContacts))
-        self.navigationItem.rightBarButtonItem = rightButton
+      //  let rightButton = UIBarButtonItem.init(image: icon!, style: .plain, target: self, action: #selector(ConversationsVC.showContacts))
+        
+        let addGroup = UIBarButtonItem.init(barButtonSystemItem: UIBarButtonSystemItem.add, target: self, action: #selector(ConversationsVC.addGroup))
+        //let rightButton = UIBarButtonItem.init(image: , style: .plain, target: self, action: #selector(ConversationsVC.showContacts))
+        
+        self.navigationItem.rightBarButtonItems = [addGroup]
+        //self.navigationItem.rightBarButtonItem = rightButton
         //left bar button image fetching
         self.navigationItem.leftBarButtonItem = self.leftButton
         self.tableView.tableFooterView = UIView.init(frame: CGRect.zero)
@@ -62,19 +69,36 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     
     //Downloads conversations
     func fetchData() {
-        Conversation.showConversations { (conversations) in
-            self.items = conversations
-            self.items.sort{ $0.lastMessage.timestamp > $1.lastMessage.timestamp }
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-                for conversation in self.items {
-                    if conversation.lastMessage.isRead == false {
-                        self.playSound()
-                        break
-                    }
-                }
-            }
+        
+        Group.showGroups { (group) in
+            
+                        self.items = group
+                       // self.items.sort{ $0.lastMessage.timestamp > $1.lastMessage.timestamp }
+                        DispatchQueue.main.async {
+                            self.tableView.reloadData()
+                            self.playSound()
+
+                        }
+
+            
         }
+        
+        
+//        Conversation.showConversations { (conversations) in
+//            self.items = conversations
+//            self.items.sort{ $0.lastMessage.timestamp > $1.lastMessage.timestamp }
+//            DispatchQueue.main.async {
+//                self.tableView.reloadData()
+//                for conversation in self.items {
+//                    if conversation.lastMessage.isRead == false {
+//                        self.playSound()
+//                        break
+//                    }
+//                }
+//            }
+//        }
+        
+        
     }
     
     //Shows profile extra view
@@ -89,6 +113,16 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         let info = ["viewType" : ShowExtraView.contacts]
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: "showExtraView"), object: nil, userInfo: info)
     }
+    func addGroup() {
+        
+        let info = ["viewType" : ShowExtraView.group]
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "showExtraView"), object: nil, userInfo: info)
+        
+       // let info = ["viewType" : ShowExtraView.contacts]
+        
+       // NotificationCenter.default.post(name: NSNotification.Name(rawValue: "showExtraView"), object: nil, userInfo: info)
+    }
+    
     
     //Show EmailVerification on the bottom
     func showEmailAlert() {
@@ -103,8 +137,11 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     
     //Shows Chat viewcontroller with given user
     func pushToUserMesssages(notification: NSNotification) {
-        if let user = notification.userInfo?["user"] as? User {
-            self.selectedUser = user
+        if let groupId = notification.userInfo?["groupID"] as? String,let groupName = notification.userInfo?["groupName"] as? String {
+            
+            
+           self.selectedGroup = groupId
+            self.selectedName = groupName
             self.performSegue(withIdentifier: "segue", sender: self)
         }
     }
@@ -122,7 +159,9 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "segue" {
             let vc = segue.destination as! ChatVC
-            vc.currentUser = self.selectedUser
+            vc.currentGroupName = self.selectedName
+            vc.currentUser = self.selectedGroup
+            vc.currentGroup = self.currentGroup
         }
     }
 
@@ -155,36 +194,38 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         default:
             let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) as! ConversationsTBCell
             cell.clearCellData()
-            cell.profilePic.image = self.items[indexPath.row].user.profilePic
-            cell.nameLabel.text = self.items[indexPath.row].user.name
-            switch self.items[indexPath.row].lastMessage.type {
-            case .text:
-                let message = self.items[indexPath.row].lastMessage.content as! String
-                cell.messageLabel.text = message
-            case .location:
-                cell.messageLabel.text = "Location"
-            default:
-                cell.messageLabel.text = "Media"
-            }
-            let messageDate = Date.init(timeIntervalSince1970: TimeInterval(self.items[indexPath.row].lastMessage.timestamp))
+            cell.profilePic.image = UIImage.init(named: "default profile")
+            cell.nameLabel.text = self.items[indexPath.row].gName
+//            switch self.items[indexPath.row].lastMessage.type {
+//            case .text:
+//                let message = self.items[indexPath.row].lastMessage.content as! String
+//                cell.messageLabel.text = message
+//            case .location:
+//                cell.messageLabel.text = "Location"
+//            default:
+//                cell.messageLabel.text = "Media"
+//            }
+            let messageDate = Date.init(timeIntervalSince1970: TimeInterval(5))
             let dataformatter = DateFormatter.init()
             dataformatter.timeStyle = .short
             let date = dataformatter.string(from: messageDate)
             cell.timeLabel.text = date
-            if self.items[indexPath.row].lastMessage.owner == .sender && self.items[indexPath.row].lastMessage.isRead == false {
-                cell.nameLabel.font = UIFont(name:"AvenirNext-DemiBold", size: 17.0)
-                cell.messageLabel.font = UIFont(name:"AvenirNext-DemiBold", size: 14.0)
-                cell.timeLabel.font = UIFont(name:"AvenirNext-DemiBold", size: 13.0)
-                cell.profilePic.layer.borderColor = GlobalVariables.blue.cgColor
-                cell.messageLabel.textColor = GlobalVariables.purple
-            }
+//            if self.items[indexPath.row].lastMessage.owner == .sender && self.items[indexPath.row].lastMessage.isRead == false {
+//                cell.nameLabel.font = UIFont(name:"AvenirNext-DemiBold", size: 17.0)
+//                cell.messageLabel.font = UIFont(name:"AvenirNext-DemiBold", size: 14.0)
+//                cell.timeLabel.font = UIFont(name:"AvenirNext-DemiBold", size: 13.0)
+//                cell.profilePic.layer.borderColor = GlobalVariables.blue.cgColor
+//                cell.messageLabel.textColor = GlobalVariables.purple
+//            }
             return cell
         }
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if self.items.count > 0 {
-            self.selectedUser = self.items[indexPath.row].user
+            
+            self.selectedGroup = self.items[indexPath.row].gId
+            self.currentGroup = self.items[indexPath.item]
             self.performSegue(withIdentifier: "segue", sender: self)
         }
     }
@@ -193,7 +234,7 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     override func viewDidLoad() {
         super.viewDidLoad()
         self.customization()
-        self.fetchData()
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -203,6 +244,7 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        self.fetchData()
         if let selectionIndexPath = self.tableView.indexPathForSelectedRow {
             self.tableView.deselectRow(at: selectionIndexPath, animated: animated)
         }

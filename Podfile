@@ -9,5 +9,6 @@ target 'Chat' do
 pod 'Firebase/Database'
 pod 'Firebase/Auth'
 pod 'Firebase/Storage'
-
+pod 'BEMCheckBox'
+pod 'Letters'
 end

@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import BEMCheckBox
 
 
 class SenderCell: UITableViewCell {
@@ -78,6 +79,8 @@ class ContactsCVCell: UICollectionViewCell {
     
     @IBOutlet weak var profilePic: RoundedImageView!
     @IBOutlet weak var nameLabel: UILabel!
+    
+    @IBOutlet weak var checkBox: BEMCheckBox!
     
     override func awakeFromNib() {
         super.awakeFromNib()

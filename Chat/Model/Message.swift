@@ -152,9 +152,17 @@ class Message {
                 Message.uploadMessage(withValues: values, toID: toID, completion: { (status) in
                     completion(status)
                 })
+                
+            case .audio:
+                break
+            case .video:
+                break
             }
         }
     }
+    
+    
+    
     
     class func uploadMessage(withValues: [String: Any], toID: String, completion: @escaping (Bool) -> Swift.Void) {
         if let currentUserID = Auth.auth().currentUser?.uid {

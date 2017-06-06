@@ -1,20 +1,17 @@
 //
-//  ChatVC.swift
+//  GroupChatVC.swift
 //  Chat
 //
-//  Created by Chitaranjan Sahu on 05/06/17.
+//  Created by Chitaranjan Sahu on 06/06/17.
 //  Copyright © 2017 xelpmoc.in. All rights reserved.
 //
-
-
 import UIKit
 import Photos
 import Firebase
 import CoreLocation
 import AVFoundation
-import Letters
 
-class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate,  UINavigationControllerDelegate, UIImagePickerControllerDelegate, CLLocationManagerDelegate,AVAudioRecorderDelegate {
+class GroupChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate,  UINavigationControllerDelegate, UIImagePickerControllerDelegate, CLLocationManagerDelegate,AVAudioRecorderDelegate {
     
     //MARK: Properties
     @IBOutlet var inputBar: UIView!
@@ -37,12 +34,10 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     let imagePicker = UIImagePickerController()
     let barHeight: CGFloat = 50
     var currentUser: String?
-    var currentGroupName :String?
-    var currentGroup:Group?
+    var currentGroupName : String?
     var canSendLocation = true
-    var userLoginInfo:User?
     
-
+    
     //MARK: Methods
     func customization() {
         self.imagePicker.delegate = self
@@ -50,7 +45,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         self.tableView.rowHeight = UITableViewAutomaticDimension
         self.tableView.contentInset.bottom = self.barHeight
         self.tableView.scrollIndicatorInsets.bottom = self.barHeight
-        self.navigationItem.title = self.currentGroupName
+        self.navigationItem.title = currentGroupName
         self.navigationItem.setHidesBackButton(true, animated: false)
         let icon = UIImage.init(named: "back")?.withRenderingMode(.alwaysOriginal)
         let backButton = UIBarButtonItem.init(image: icon!, style: .plain, target: self, action: #selector(self.dismissSelf))
@@ -60,8 +55,13 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     
     //Downloads messages
     func fetchData() {
-        GroupMessage.downloadAllMessages(forGroupID: self.currentUser!) { [weak weakSelf = self] (groupMessage) in
-            weakSelf?.items.append(groupMessage)
+        
+      //  let message = GroupMessage.init(owner: .receiver, type: .text, content: "jhaksjdhf", groupId: "", timestamp: 50,fromID:"")
+       // items.append(message)
+        //self.tableView.reloadData()
+        
+        GroupMessage.downloadAllMessages(forGroupID: self.currentUser!, completion: {[weak weakSelf = self] (message) in
+            weakSelf?.items.append(message)
             weakSelf?.items.sort{ $0.timestamp < $1.timestamp }
             DispatchQueue.main.async {
                 if let state = weakSelf?.items.isEmpty, state == false {
@@ -69,18 +69,8 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
                     weakSelf?.tableView.scrollToRow(at: IndexPath.init(row: self.items.count - 1, section: 0), at: .bottom, animated: false)
                 }
             }
-        }
-//        Message.downloadAllMessages(forUserID: self.currentUser!.id, completion: {[weak weakSelf = self] (message) in
-//            weakSelf?.items.append(message)
-//            weakSelf?.items.sort{ $0.timestamp < $1.timestamp }
-//            DispatchQueue.main.async {
-//                if let state = weakSelf?.items.isEmpty, state == false {
-//                    weakSelf?.tableView.reloadData()
-//                    weakSelf?.tableView.scrollToRow(at: IndexPath.init(row: self.items.count - 1, section: 0), at: .bottom, animated: false)
-//                }
-//            }
-        
-//        Message.markMessagesRead(forUserID: self.currentUser!.id)
+        })
+       // Message.markMessagesRead(forUserID: self.currentUser!.id)
     }
     
     //Hides current viewcontroller
@@ -92,19 +82,10 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     
     func composeMessage(type: MessageType, content: Any)  {
         
-        let groupMessage = GroupMessage.init(owner: .sender, type: type, content: content, groupId: currentUser!, timestamp: Int(Date().timeIntervalSince1970), fromID: currentUser!)
-        GroupMessage.send(message: groupMessage, toID: (currentGroup?.gSendTo)!) { (_) in
+       let groupMessage = GroupMessage.init(owner: .sender, type: type, content: content, groupId: currentUser!, timestamp: Int(Date().timeIntervalSince1970), fromID: currentUser!)
+        GroupMessage.send(message: groupMessage, toID: currentUser!) { (_) in
             
         }
-
-        
-        
-        
-//        let message = Message.init(type: type, content: content, owner: .sender, timestamp: Int(Date().timeIntervalSince1970), isRead: false)
-//        
-//        Message.send(message: message, toID: self.currentUser!, completion: {(_) in
-//            
-//        })
     }
     
     func checkLocationPermission() -> Bool {
@@ -135,7 +116,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     }
     
     @IBAction func showMessage(_ sender: Any) {
-       self.animateExtraButtons(toHide: true)
+        self.animateExtraButtons(toHide: true)
     }
     
     @IBAction func selectGallery(_ sender: Any) {
@@ -167,7 +148,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         return getDocumentsDirectory().appendingPathComponent(".m4a")
     }
     func finishRecording(success: Bool) {
-       
+        
         
         if success {
             //recordButton.setTitle("Tap to Re-record", for: .normal)
@@ -267,7 +248,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
             }
         }
     }
-
+    
     //MARK: Delegates
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.items.count
@@ -318,11 +299,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         case .sender:
             let cell = tableView.dequeueReusableCell(withIdentifier: "Sender", for: indexPath) as! SenderCell
             cell.clearCellData()
-            if let userLoginInfo = self.userLoginInfo{
-                cell.profilePic.setImage(string: userLoginInfo.name, color: UIColor(red: 134/255, green: 139/255, blue: 254/255, alpha: 1), circular: true)
-            }
-            
-           // cell.profilePic.image = UIImage.init(named: "default profile")
+            cell.profilePic.image = UIImage.init(named: "default profile")//self.currentUser?.profilePic
             switch self.items[indexPath.row].type {
             case .text:
                 cell.message.text = self.items[indexPath.row].content as! String
@@ -393,63 +370,37 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         if let lastLocation = locations.last {
             if self.canSendLocation {
                 let coordinate = String(lastLocation.coordinate.latitude) + ":" + String(lastLocation.coordinate.longitude)
-                
-                let groupMessage = GroupMessage.init(owner: .sender, type: .location, content: coordinate, groupId: currentUser!, timestamp: Int(Date().timeIntervalSince1970), fromID: currentUser!)
-                GroupMessage.send(message: groupMessage, toID: (currentGroup?.gSendTo)!) { (_) in
-                    
-                }
-
-                
-//                let message = Message.init(type: .location, content: coordinate, owner: .sender, timestamp: Int(Date().timeIntervalSince1970), isRead: false)
-//                Message.send(message: message, toID: self.currentUser!, completion: {(_) in
-//                })
+                let message = GroupMessage.init(owner: .sender, type: .location, content: coordinate, groupId: "", timestamp: Int(Date().timeIntervalSince1970), fromID: "")
+                GroupMessage.send(message: message, toID: self.currentUser!, completion: {(_) in
+                })
                 self.canSendLocation = false
             }
         }
     }
-
+    
     //MARK: ViewController lifecycle
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         self.inputBar.backgroundColor = UIColor.clear
         self.view.layoutIfNeeded()
-        NotificationCenter.default.addObserver(self, selector: #selector(ChatVC.showKeyboard(notification:)), name: Notification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(GroupChatVC.showKeyboard(notification:)), name: Notification.Name.UIKeyboardWillShow, object: nil)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         NotificationCenter.default.removeObserver(self)
-      //  Message.markMessagesRead(forUserID: self.currentUser!)
+      //  Message.markMessagesRead(forUserID: self.currentUser!.id)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.customization()
-        self.fetchUser()
+        //self.tableView.reloadData()
         self.fetchData()
     }
-    func fetchUser() {
-        
-         if let id = Auth.auth().currentUser?.uid {
-            
-        User.info(forUserID: id, completion: { (user) in
-            
-            self.userLoginInfo = user
-            
-//            let emptyMessage = Message.init(type: .text, content: "loading", owner: .sender, timestamp: 0, isRead: true)
-//            let conversation = Conversation.init(user: user, lastMessage: emptyMessage)
-//            conversations.append(conversation)
-//            conversation.lastMessage.downloadLastMessage(forLocation: location, completion: { (_) in
-//                completion(conversations)
-//            })
-        })
-        }
-
-
-    }
-    
     
 }
+
 
 
 

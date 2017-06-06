@@ -9,8 +9,9 @@
 import UIKit
 import Firebase
 import MapKit
+import BEMCheckBox
 
-class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UIScrollViewDelegate {
+class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UIScrollViewDelegate,BEMCheckBoxDelegate {
 
     //MARK: Properties
     @IBOutlet var contactsView: UIView!
@@ -24,9 +25,14 @@ class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewD
     @IBOutlet weak var profilePicView: RoundedImageView!
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var emailLabel: UILabel!
+    @IBOutlet weak var creationBtn: RoundedButton!
+    @IBOutlet weak var closeBtn: UIButton!
+    var TypeOfView : ShowExtraView?
     var topAnchorContraint: NSLayoutConstraint!
     let darkView = UIView.init()
     var items = [User]()
+    
+    var groupMemeber = [Int:String]()
     
     //MARK: Methods
     func customization() {
@@ -101,6 +107,7 @@ class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewD
     
     //Hide Extra views
     func dismissExtraViews() {
+        TypeOfView = nil
         self.topAnchorContraint.constant = 1000
         UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseIn, animations: {
             self.view.layoutIfNeeded()
@@ -118,6 +125,9 @@ class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewD
         })
     }
     
+    @IBAction func closeBtnClicked(_ sender: UIButton) {
+        self.dismissExtraViews()
+    }
     //Show extra view
     func showExtraViews(notification: NSNotification)  {
         let transform = CGAffineTransform.init(scaleX: 0.94, y: 0.94)
@@ -132,17 +142,42 @@ class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewD
                 }
             })
             switch type {
-            case .contacts:
+            case .group:
                 self.contactsView.isHidden = false
+                closeBtn.isHidden = false
+                TypeOfView = .group
+                self.creationBtn.setTitle("New Group", for: .normal)
+                runOnMainThread {
+                    self.collectionView.reloadData()
+                }
+                //self.contactsView.
+                if self.items.count == 0 {
+                }
+               // break
+                
+            case .contacts:
+                TypeOfView = .contacts
+              closeBtn.isHidden = true
+                self.creationBtn.setTitle("Close", for: .normal)
+                self.contactsView.isHidden = false
+                runOnMainThread {
+                    self.collectionView.reloadData()
+                }
                 if self.items.count == 0 {
                 }
             case .profile:
+                TypeOfView = .profile
+                closeBtn.isHidden = true
                 self.profileView.isHidden = false
             case .preview:
+                TypeOfView = .preview
+                closeBtn.isHidden = true
                 self.previewView.isHidden = false
                 self.previewImageView.image = notification.userInfo?["pic"] as? UIImage
                 self.scrollView.contentSize = self.previewImageView.frame.size
             case .map:
+                TypeOfView = .map
+                closeBtn.isHidden = true
                 self.mapPreviewView.isHidden = false
                 let coordinate = notification.userInfo?["location"] as? CLLocationCoordinate2D
                 let annotation = MKPointAnnotation.init()
@@ -200,9 +235,71 @@ class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewD
     }
     
     @IBAction func closeView(_ sender: Any) {
-        self.dismissExtraViews()
+        if let sender = sender as? UIButton{
+            if sender.titleLabel?.text == "New Group"{
+                
+                self.presentAlert()
+                
+            }else{
+                self.dismissExtraViews()
+            }
+        }
+        
     }
   
+    func presentAlert() {
+        let alertController = UIAlertController(title: "Name", message: "Type Group Name", preferredStyle: .alert)
+        
+        let confirmAction = UIAlertAction(title: "Confirm", style: .default) { (_) in
+            if let field = alertController.textFields?[0] {
+                // store your data
+                
+                 if let currentUserID = Auth.auth().currentUser?.uid {
+                    var userIds = ""
+                    for (index,element) in self.groupMemeber.enumerated(){
+                        userIds = userIds + element.value + ","
+                    }
+                userIds = userIds + currentUserID  //String(userIds.characters.dropLast())
+                    
+                Group.createGroup(withName: field.text!, userIds: userIds, creatorID: currentUserID, completion: { flag,id,name in
+                    
+                    //if self.items.count > 0 {
+                        self.dismissExtraViews()
+                        if let ids = id{
+                            let userInfo = ["groupID": ids,"groupName": field.text!]
+                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "showUserMessages"), object: nil, userInfo: userInfo)
+
+                            
+                        }
+                      //                    }
+                    
+                    self.groupMemeber.removeAll()
+                    print("sucessfull")
+                })
+                }
+                //groupMemeber
+            
+                self.dismissExtraViews()
+            } else {
+                // user did not fill field
+            }
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (_) in
+        
+        self.dismissExtraViews()
+        }
+        
+        alertController.addTextField { (textField) in
+            textField.placeholder = "Name"
+        }
+        
+        alertController.addAction(confirmAction)
+        alertController.addAction(cancelAction)
+        
+        self.present(alertController, animated: true, completion: nil)
+    }
+    
     @IBAction func logOutUser(_ sender: Any) {
         User.logOutUser { (status) in
             if status == true {
@@ -230,17 +327,69 @@ class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewD
             cell.nameLabel.text = self.items[indexPath.row].name
             cell.profilePic.layer.borderWidth = 2
             cell.profilePic.layer.borderColor = GlobalVariables.purple.cgColor
+            if let type = TypeOfView{
+                switch type {
+                case .group:
+                    
+                    cell.checkBox.on = false
+                    cell.checkBox.tag = indexPath.item
+                    cell.checkBox.isHidden = false
+                    cell.checkBox.delegate = self
+                    
+                    break
+                    
+                case .contacts :
+                    cell.checkBox.isHidden = true
+                    break
+                default:
+                    cell.checkBox.isHidden = true
+                    break
+        }
+            }
+            //cell.checkBox.on = true
             return cell
         }
     }
+    
+    func didTap(_ checkBox: BEMCheckBox) {
+         let tag = checkBox.tag
+        if checkBox.on{
+            groupMemeber.updateValue(self.items[tag].id, forKey: tag)
+          
+        }else{
+              groupMemeber.removeValue(forKey: tag)
+                   }
+    }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if self.items.count > 0 {
-            self.dismissExtraViews()
-            let userInfo = ["user": self.items[indexPath.row]]
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "showUserMessages"), object: nil, userInfo: userInfo)
+        if let type = TypeOfView{
+            switch type {
+            case .group:
+                
+                let cell = collectionView.cellForItem(at: indexPath) as! ContactsCVCell
+                cell.checkBox.onAnimationType = .bounce
+                cell.checkBox.setOn(true, animated: true)
+                //cell
+                
+                 break
+                
+            case .contacts :
+                    if self.items.count > 0 {
+                        self.dismissExtraViews()
+                        let userInfo = ["user": self.items[indexPath.row]]
+                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "showUserMessages"), object: nil, userInfo: userInfo)
+                }
+
+                break
+                
+            default:
+                break
+                
+            }
+            
         }
-    }
+        
+          }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 0

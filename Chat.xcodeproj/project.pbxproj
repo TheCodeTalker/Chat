@@ -25,6 +25,11 @@
 		B6B16A7D1EE5A7B80017FCDC /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B16A7A1EE5A7B80017FCDC /* User.swift */; };
 		B6B16A7F1EE5AAD50017FCDC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B6B16A7E1EE5AAD50017FCDC /* Main.storyboard */; };
 		B6B16A811EE5ABC80017FCDC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B6B16A801EE5ABC80017FCDC /* GoogleService-Info.plist */; };
+		B6CE94A31EE6777200D3F389 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CE94A21EE6777200D3F389 /* Utils.swift */; };
+		B6CE94A51EE6843600D3F389 /* Group.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CE94A41EE6843600D3F389 /* Group.swift */; };
+		B6CE94A71EE6863900D3F389 /* GroupConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CE94A61EE6863900D3F389 /* GroupConversion.swift */; };
+		B6CE94A91EE686F700D3F389 /* GroupMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CE94A81EE686F700D3F389 /* GroupMessage.swift */; };
+		B6CE94AB1EE6ACF000D3F389 /* GroupChatVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CE94AA1EE6ACF000D3F389 /* GroupChatVC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +54,11 @@
 		B6B16A7A1EE5A7B80017FCDC /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		B6B16A7E1EE5AAD50017FCDC /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		B6B16A801EE5ABC80017FCDC /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		B6CE94A21EE6777200D3F389 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		B6CE94A41EE6843600D3F389 /* Group.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
+		B6CE94A61EE6863900D3F389 /* GroupConversion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupConversion.swift; sourceTree = "<group>"; };
+		B6CE94A81EE686F700D3F389 /* GroupMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupMessage.swift; sourceTree = "<group>"; };
+		B6CE94AA1EE6ACF000D3F389 /* GroupChatVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupChatVC.swift; sourceTree = "<group>"; };
 		DD87CB9E7E7C9D8D351681EA /* Pods_Chat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Chat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -130,6 +140,9 @@
 				B6B16A781EE5A7B80017FCDC /* Conversation.swift */,
 				B6B16A791EE5A7B80017FCDC /* Message.swift */,
 				B6B16A7A1EE5A7B80017FCDC /* User.swift */,
+				B6CE94A41EE6843600D3F389 /* Group.swift */,
+				B6CE94A61EE6863900D3F389 /* GroupConversion.swift */,
+				B6CE94A81EE686F700D3F389 /* GroupMessage.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -137,6 +150,7 @@
 		B6401F311EE592A7000A939C /* Helper */ = {
 			isa = PBXGroup;
 			children = (
+				B6CE94A21EE6777200D3F389 /* Utils.swift */,
 				B6401F321EE592B4000A939C /* Helper Files.swift */,
 			);
 			path = Helper;
@@ -152,6 +166,7 @@
 				B6B16A6F1EE5A7670017FCDC /* WelcomeVC.swift */,
 				B6B16A691EE5A70F0017FCDC /* LandingVC.swift */,
 				B6B16A671EE5A7050017FCDC /* ViewController.swift */,
+				B6CE94AA1EE6ACF000D3F389 /* GroupChatVC.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -292,17 +307,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				B6B16A6A1EE5A70F0017FCDC /* LandingVC.swift in Sources */,
+				B6CE94A71EE6863900D3F389 /* GroupConversion.swift in Sources */,
 				B6B16A681EE5A7050017FCDC /* ViewController.swift in Sources */,
+				B6CE94AB1EE6ACF000D3F389 /* GroupChatVC.swift in Sources */,
 				B6401F331EE592B4000A939C /* Helper Files.swift in Sources */,
 				B6401F1A1EE57009000A939C /* AppDelegate.swift in Sources */,
 				B6B16A731EE5A7670017FCDC /* VCCells.swift in Sources */,
+				B6CE94A31EE6777200D3F389 /* Utils.swift in Sources */,
 				B6B16A701EE5A7670017FCDC /* ChatVC.swift in Sources */,
+				B6CE94A51EE6843600D3F389 /* Group.swift in Sources */,
 				B6B16A7C1EE5A7B80017FCDC /* Message.swift in Sources */,
 				B6B16A741EE5A7670017FCDC /* WelcomeVC.swift in Sources */,
 				B6B16A7D1EE5A7B80017FCDC /* User.swift in Sources */,
 				B6B16A721EE5A7670017FCDC /* NavVC.swift in Sources */,
 				B6B16A7B1EE5A7B80017FCDC /* Conversation.swift in Sources */,
 				B6B16A711EE5A7670017FCDC /* ConversationsVC.swift in Sources */,
+				B6CE94A91EE686F700D3F389 /* GroupMessage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

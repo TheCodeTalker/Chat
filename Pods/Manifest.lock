@@ -1,4 +1,5 @@
 PODS:
+  - BEMCheckBox (1.4.1)
   - Firebase/Auth (4.0.0):
     - Firebase/Core
     - FirebaseAuth (= 4.0.0)
@@ -40,13 +41,17 @@ PODS:
     - GoogleToolboxForMac/NSString+URLArguments (= 2.1.1)
   - GoogleToolboxForMac/NSString+URLArguments (2.1.1)
   - GTMSessionFetcher/Core (1.1.10)
+  - Letters (1.0.2)
 
 DEPENDENCIES:
+  - BEMCheckBox
   - Firebase/Auth
   - Firebase/Database
   - Firebase/Storage
+  - Letters
 
 SPEC CHECKSUMS:
+  BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   Firebase: 284eea779b73fdff309791817da7c68bff8dd572
   FirebaseAnalytics: 6f08e746f7d66f5452931bc2e822b5df9c66b64a
   FirebaseAuth: ebb6abcbabae00fc47446d690c19ce68d8484fde
@@ -56,7 +61,8 @@ SPEC CHECKSUMS:
   FirebaseStorage: 8110a1ed2034c8fbfd83890d2acc9cdbbd99afec
   GoogleToolboxForMac: 8e329f1b599f2512c6b10676d45736bcc2cbbeb0
   GTMSessionFetcher: 30d874b96d0d76028f61fbd122801e3f030d47db
+  Letters: 5cfa7075f0d15083ea24365186ffa848ea858293
 
-PODFILE CHECKSUM: e1ad4263d4e8836ee9bdc26e514f8bc0ff424b07
+PODFILE CHECKSUM: 56bc679703cb5cc46326c816b2ebf77d8e0cef58
 
 COCOAPODS: 1.2.0
