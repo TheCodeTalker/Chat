@@ -41,6 +41,19 @@ class RoundedButton: UIButton {
     }
 }
 
+extension Date {
+    var millisecondsSince1970:Int {
+        return Int((self.timeIntervalSince1970).rounded())
+    }
+    
+    
+    //Int(Date().timeIntervalSince1970)
+    
+    init(milliseconds:Int) {
+        self = Date(timeIntervalSince1970: TimeInterval(milliseconds))
+    }
+}
+
 //Enums
 enum ViewControllerType {
     case welcome

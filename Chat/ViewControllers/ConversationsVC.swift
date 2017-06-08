@@ -9,8 +9,9 @@
 import UIKit
 import Firebase
 import AudioToolbox
-
-class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
+import MBProgressHUD
+import MessageUI
+class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSource,MFMailComposeViewControllerDelegate {
     
     //MARK: Properties
     @IBOutlet weak var tableView: UITableView!
@@ -20,10 +21,15 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         let button  = UIBarButtonItem.init(image: image, style: .plain, target: self, action: #selector(ConversationsVC.showProfile))
         return button
     }()
-    var items = [Group]()
+    var items = [GroupConversion]()
     var selectedGroup: String?
     var selectedName: String?
+    var sendTo :String?
     var currentGroup :Group?
+    let mailComposer = MFMailComposeViewController()
+    var deleteGroup :GroupConversion?
+    var deleteIndex :Int?
+    
     
     //MARK: Methods
     func customization()  {
@@ -70,33 +76,33 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     //Downloads conversations
     func fetchData() {
         
-        Group.showGroups { (group) in
-            
-                        self.items = group
-                       // self.items.sort{ $0.lastMessage.timestamp > $1.lastMessage.timestamp }
-                        DispatchQueue.main.async {
-                            self.tableView.reloadData()
-                            self.playSound()
-
-                        }
-
-            
-        }
-        
-        
-//        Conversation.showConversations { (conversations) in
-//            self.items = conversations
-//            self.items.sort{ $0.lastMessage.timestamp > $1.lastMessage.timestamp }
-//            DispatchQueue.main.async {
-//                self.tableView.reloadData()
-//                for conversation in self.items {
-//                    if conversation.lastMessage.isRead == false {
-//                        self.playSound()
-//                        break
-//                    }
-//                }
-//            }
+//        Group.showGroups { (group) in
+//            
+//                        self.items = group
+//                       // self.items.sort{ $0.lastMessage.timestamp > $1.lastMessage.timestamp }
+//                        DispatchQueue.main.async {
+//                            self.tableView.reloadData()
+//                            self.playSound()
+//
+//                        }
+//
+//            
 //        }
+        
+        
+        GroupConversion.showConversations { (conversations) in
+            self.items = conversations
+            self.items.sort{ $0.lastMessage.timestamp > $1.lastMessage.timestamp }
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+                for conversation in self.items {
+                    //if conversation.lastMessage.isRead == false {
+                        self.playSound()
+                        break
+                    //}
+                }
+            }
+        }
         
         
     }
@@ -137,11 +143,12 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     
     //Shows Chat viewcontroller with given user
     func pushToUserMesssages(notification: NSNotification) {
-        if let groupId = notification.userInfo?["groupID"] as? String,let groupName = notification.userInfo?["groupName"] as? String {
+        if let groupId = notification.userInfo?["groupID"] as? String,let groupName = notification.userInfo?["groupName"] as? String, let sendTo = notification.userInfo?["sendTo"] as? String  {
             
             
            self.selectedGroup = groupId
             self.selectedName = groupName
+            self.sendTo = sendTo
             self.performSegue(withIdentifier: "segue", sender: self)
         }
     }
@@ -162,10 +169,149 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
             vc.currentGroupName = self.selectedName
             vc.currentUser = self.selectedGroup
             vc.currentGroup = self.currentGroup
+            vc.sendTo = self.sendTo
         }
     }
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        
+        if  self.items.count != 0{
+        let groups = self.items[indexPath.item]
+          if let id = Auth.auth().currentUser?.uid {
+        
+            if groups.group.gAdmin == id{
+                 return true
+            }
+        }
+        }
+       return false
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if (editingStyle == UITableViewCellEditingStyle.delete) {
+            self.deleteGroup = self.items[indexPath.item]
+            self.deleteIndex = indexPath.item
+            self.createChatCopyOfGroup(ForGroupId: self.items[indexPath.item])
+            
+            
+        }
+    }
+    
+    
+    func createChatCopyOfGroup(ForGroupId:GroupConversion)
+    {
+       // let filename = "chatfile"
+        //let strings = ["a","b"]
+        
+        GroupConversion.ReadMessagesRead(forGroupID: ForGroupId.group.gId!) { [weak weekself = self](text) in
+            if(MFMailComposeViewController.canSendMail()){
+                
+                
+                weekself?.mailComposer.mailComposeDelegate = self
+                // mailComposer.setToRecipients([mail])
+                weekself?.mailComposer.setSubject("Subject" )
+                weekself?.mailComposer.setMessageBody("body text", isHTML: false)
+                
+              //  let joinedString = strings.joined(separator: "\n")
+               // print(joinedString)
+                if let data = (text as NSString).data(using: String.Encoding.utf8.rawValue){
+                    //Attach File
+                    weekself?.mailComposer.addAttachmentData(data, mimeType: "text/plain", fileName: "ChatHistory")
+                    weekself?.present(self.mailComposer, animated: true, completion: nil)
+                }
+            }
 
-    //MARK: Delegates
+        }
+        
+        
+    }
+    
+    func myDeleteFunction(childIWantToRemove: String,completion: @escaping (Bool) -> Swift.Void) {
+        
+        Database.database().reference().child("groups").child(childIWantToRemove).removeValue { (error, ref) in
+            if error != nil {
+        Database.database().reference().child("groupConversations").child(childIWantToRemove).removeValue { (error, ref) in
+              if error != nil {
+                completion(true)
+                
+            }
+                }
+                print("error \(error)")
+            }
+        }
+        completion(false)
+    }
+    
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        
+        switch (result)
+        {
+        case .cancelled:
+            deleteGroup = nil
+            deleteIndex = nil
+            mailComposer.dismiss(animated: true, completion: nil)
+
+            //NSLog(@"Mail cancelled");
+            break;
+        case .saved:
+            
+            mailComposer.dismiss(animated: true, completion: nil)
+
+            //NSLog(@"Mail saved");
+            break;
+        case .sent:
+            
+            mailComposer.dismiss(animated: true, completion: {
+                if let index = self.deleteIndex{
+                    
+                    
+                    self.myDeleteFunction(childIWantToRemove: (self.deleteGroup?.group.gId)!, completion: { (flag) in
+                        if flag != false{
+                        self.tableView.beginUpdates()
+                        
+                        self.items.remove(at: index)
+                        let indexPath = IndexPath(row: index, section: 0)
+                        // Note that indexPath is wrapped in an array:  [indexPath]
+                        self.tableView.deleteRows(at: [indexPath], with: .automatic)
+                        
+                        self.deleteIndex = nil
+                        // self.tableView.reloadData()
+                        
+                        self.tableView.endUpdates()
+                        }
+
+                    })
+                    
+                }
+
+            })
+           // mailComposer.dismiss(animated: true, completion: nil)
+            
+            
+
+            
+            
+
+            //NSLog(@"Mail sent");
+            break;
+        case .failed:
+            mailComposer.dismiss(animated: true, completion: nil)
+
+            //NSLog(@"Mail sent failure: %@", [error localizedDescription]);
+            break;
+        default:
+            break;
+        }
+            }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      //MARK: Delegates
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
@@ -195,7 +341,7 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
             let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) as! ConversationsTBCell
             cell.clearCellData()
             cell.profilePic.image = UIImage.init(named: "default profile")
-            cell.nameLabel.text = self.items[indexPath.row].gName
+            cell.nameLabel.text = self.items[indexPath.row].group.gName
 //            switch self.items[indexPath.row].lastMessage.type {
 //            case .text:
 //                let message = self.items[indexPath.row].lastMessage.content as! String
@@ -224,8 +370,8 @@ class ConversationsVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if self.items.count > 0 {
             
-            self.selectedGroup = self.items[indexPath.row].gId
-            self.currentGroup = self.items[indexPath.item]
+            self.selectedGroup = self.items[indexPath.row].group.gId
+            self.currentGroup = self.items[indexPath.item].group
             self.performSegue(withIdentifier: "segue", sender: self)
         }
     }

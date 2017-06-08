@@ -11,4 +11,6 @@ pod 'Firebase/Auth'
 pod 'Firebase/Storage'
 pod 'BEMCheckBox'
 pod 'Letters'
+pod 'SDWebImage'
+pod 'MBProgressHUD', '~> 0.9.2'
 end

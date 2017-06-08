@@ -82,7 +82,7 @@ class GroupChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource,
     
     func composeMessage(type: MessageType, content: Any)  {
         
-       let groupMessage = GroupMessage.init(owner: .sender, type: type, content: content, groupId: currentUser!, timestamp: Int(Date().timeIntervalSince1970), fromID: currentUser!)
+       let groupMessage = GroupMessage.init(owner: .sender, type: type, content: content, groupId: currentUser!, timestamp: Int(Date().timeIntervalSince1970), fromID: currentUser!,imagePath: "")
         GroupMessage.send(message: groupMessage, toID: currentUser!) { (_) in
             
         }
@@ -370,7 +370,7 @@ class GroupChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource,
         if let lastLocation = locations.last {
             if self.canSendLocation {
                 let coordinate = String(lastLocation.coordinate.latitude) + ":" + String(lastLocation.coordinate.longitude)
-                let message = GroupMessage.init(owner: .sender, type: .location, content: coordinate, groupId: "", timestamp: Int(Date().timeIntervalSince1970), fromID: "")
+                let message = GroupMessage.init(owner: .sender, type: .location, content: coordinate, groupId: "", timestamp: Int(Date().timeIntervalSince1970), fromID: "", imagePath: "")
                 GroupMessage.send(message: message, toID: self.currentUser!, completion: {(_) in
                 })
                 self.canSendLocation = false

@@ -145,6 +145,8 @@ class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewD
             case .group:
                 self.contactsView.isHidden = false
                 closeBtn.isHidden = false
+                self.creationBtn.alpha = 0.5
+                self.creationBtn.isEnabled = false
                 TypeOfView = .group
                 self.creationBtn.setTitle("New Group", for: .normal)
                 runOnMainThread {
@@ -266,7 +268,7 @@ class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewD
                     //if self.items.count > 0 {
                         self.dismissExtraViews()
                         if let ids = id{
-                            let userInfo = ["groupID": ids,"groupName": field.text!]
+                            let userInfo = ["groupID": ids,"groupName": field.text!,"sendTo":userIds]
                             NotificationCenter.default.post(name: NSNotification.Name(rawValue: "showUserMessages"), object: nil, userInfo: userInfo)
 
                             
@@ -355,9 +357,20 @@ class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewD
          let tag = checkBox.tag
         if checkBox.on{
             groupMemeber.updateValue(self.items[tag].id, forKey: tag)
+            if groupMemeber.count > 0{
+                self.creationBtn.alpha = 1
+                self.creationBtn.isEnabled = true
+            }
+            
           
         }else{
-              groupMemeber.removeValue(forKey: tag)
+            groupMemeber.removeValue(forKey: tag)
+            if groupMemeber.count == 0{
+                self.creationBtn.alpha = 0.5
+                self.creationBtn.isEnabled = false
+            }
+
+            
                    }
     }
 
@@ -368,7 +381,7 @@ class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewD
                 
                 let cell = collectionView.cellForItem(at: indexPath) as! ContactsCVCell
                 cell.checkBox.onAnimationType = .bounce
-                cell.checkBox.setOn(true, animated: true)
+               // cell.checkBox.setOn(true, animated: true)
                 //cell
                 
                  break
@@ -423,7 +436,9 @@ class NavVC: UINavigationController, UICollectionViewDelegate, UICollectionViewD
     //MARK: ViewController lifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.customization()        
+        self.creationBtn.alpha = 0.5
+        self.creationBtn.isEnabled = false
+        self.customization()
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {

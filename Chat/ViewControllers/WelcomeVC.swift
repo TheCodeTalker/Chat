@@ -138,17 +138,18 @@ class WelcomeVC: UIViewController, UITextFieldDelegate, UINavigationControllerDe
             item.resignFirstResponder()
         }
         self.showLoading(state: true)
-        User.registerUser(withName: self.registerNameField.text!, email: self.registerEmailField.text!, password: self.registerPasswordField.text!, profilePic: self.profilePicView.image!) { [weak weakSelf = self] (status) in
+        User.registerUser(withName: self.registerNameField.text!, email: self.registerEmailField.text!, password: self.registerPasswordField.text!, profilePic: self.profilePicView.image!) { [weak weakSelf = self] (status,error) in
             DispatchQueue.main.async {
                 weakSelf?.showLoading(state: false)
-                for item in self.inputFields {
-                    item.text = ""
-                }
+//                for item in self.inputFields {
+//                    item.text = ""
+//                }
                 if status == true {
                     weakSelf?.pushTomainView()
                     weakSelf?.profilePicView.image = UIImage.init(named: "profile pic")
                 } else {
                     for item in (weakSelf?.waringLabels)! {
+                        item.text = error
                         item.isHidden = false
                     }
                 }
@@ -161,16 +162,17 @@ class WelcomeVC: UIViewController, UITextFieldDelegate, UINavigationControllerDe
             item.resignFirstResponder()
         }
         self.showLoading(state: true)
-        User.loginUser(withEmail: self.loginEmailField.text!, password: self.loginPasswordField.text!) { [weak weakSelf = self](status) in
+        User.loginUser(withEmail: self.loginEmailField.text!, password: self.loginPasswordField.text!) { [weak weakSelf = self](status,error) in
             DispatchQueue.main.async {
                 weakSelf?.showLoading(state: false)
-                for item in self.inputFields {
-                    item.text = ""
-                }
+//                for item in self.inputFields {
+//                    item.text = ""
+//                }
                 if status == true {
                     weakSelf?.pushTomainView()
                 } else {
                     for item in (weakSelf?.waringLabels)! {
+                        item.text = error
                         item.isHidden = false
                     }
                 }

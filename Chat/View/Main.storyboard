@@ -383,11 +383,8 @@
                                 <action selector="login:" destination="rVC-Ig-Azx" eventType="touchUpInside" id="88D-34-uXx"/>
                             </connections>
                         </button>
-                        <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Wrong input paramets, please try again" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="O5g-Mk-Irl">
+                        <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Wrong input paramets, please try again" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="O5g-Mk-Irl">
                             <rect key="frame" x="45" y="395" width="362" height="18"/>
-                            <constraints>
-                                <constraint firstAttribute="height" constant="18" id="Zjj-mw-Pso"/>
-                            </constraints>
                             <fontDescription key="fontDescription" type="system" pointSize="15"/>
                             <color key="textColor" red="1" green="0.30980392159999998" blue="0.30980392159999998" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <nil key="highlightedColor"/>
@@ -664,11 +661,19 @@
                                             <subviews>
                                                 <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="uBY-8s-Qff">
                                                     <rect key="frame" x="56" y="6" width="20" height="18"/>
-                                                    <color key="backgroundColor" red="0.50588235294117645" green="0.2853276271446078" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" relation="lessThanOrEqual" constant="300" id="SMj-hx-roT"/>
                                                     </constraints>
                                                 </imageView>
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="06U-jl-dgu">
+                                                    <rect key="frame" x="51" y="0.0" width="50" height="50"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="50" id="MBO-qi-VQK"/>
+                                                        <constraint firstAttribute="width" constant="50" id="k9j-oA-pSl"/>
+                                                    </constraints>
+                                                    <state key="normal" image="CircledPlay"/>
+                                                </button>
                                                 <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UQY-Xy-8BF">
                                                     <rect key="frame" x="61" y="6" width="10" height="18"/>
                                                     <constraints>
@@ -689,6 +694,7 @@
                                                 </imageView>
                                             </subviews>
                                             <constraints>
+                                                <constraint firstItem="06U-jl-dgu" firstAttribute="centerY" secondItem="uBY-8s-Qff" secondAttribute="centerY" constant="10" id="2M5-oB-X1N"/>
                                                 <constraint firstItem="uBY-8s-Qff" firstAttribute="height" secondItem="UQY-Xy-8BF" secondAttribute="height" id="9lf-eI-P6p"/>
                                                 <constraint firstItem="uBY-8s-Qff" firstAttribute="bottom" secondItem="f5G-7e-2oY" secondAttribute="bottom" id="E1b-f4-ak6"/>
                                                 <constraint firstItem="f5G-7e-2oY" firstAttribute="leading" secondItem="bCB-qc-OOc" secondAttribute="leading" constant="10" id="Izk-uN-vqz"/>
@@ -696,13 +702,16 @@
                                                 <constraint firstItem="uBY-8s-Qff" firstAttribute="width" secondItem="UQY-Xy-8BF" secondAttribute="width" constant="10" id="T7K-hn-a4m"/>
                                                 <constraint firstItem="uBY-8s-Qff" firstAttribute="centerX" secondItem="UQY-Xy-8BF" secondAttribute="centerX" id="TDd-p8-7dg"/>
                                                 <constraint firstAttribute="bottom" secondItem="f5G-7e-2oY" secondAttribute="bottom" constant="6" id="kJV-sV-3lg"/>
+                                                <constraint firstItem="06U-jl-dgu" firstAttribute="centerX" secondItem="uBY-8s-Qff" secondAttribute="centerX" constant="10" id="oCc-qu-Nq0"/>
                                                 <constraint firstItem="uBY-8s-Qff" firstAttribute="centerY" secondItem="UQY-Xy-8BF" secondAttribute="centerY" id="oO5-N4-LxR"/>
                                                 <constraint firstItem="uBY-8s-Qff" firstAttribute="leading" secondItem="f5G-7e-2oY" secondAttribute="trailing" constant="10" id="uAM-dx-8tu"/>
                                             </constraints>
                                         </tableViewCellContentView>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         <connections>
                                             <outlet property="message" destination="UQY-Xy-8BF" id="Pb9-XX-UkV"/>
                                             <outlet property="messageBackground" destination="uBY-8s-Qff" id="Xrj-iQ-C4I"/>
+                                            <outlet property="playBtn" destination="06U-jl-dgu" id="7RP-gl-wwU"/>
                                             <outlet property="profilePic" destination="f5G-7e-2oY" id="KHS-Fm-Tak"/>
                                         </connections>
                                     </tableViewCell>
@@ -715,11 +724,20 @@
                                             <subviews>
                                                 <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="I3C-dc-yVH">
                                                     <rect key="frame" x="340" y="6" width="20" height="18"/>
-                                                    <color key="backgroundColor" red="0.80000001190000003" green="0.80000001190000003" blue="0.80000001190000003" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <color key="backgroundColor" red="0.89411764705882346" green="1" blue="0.77647058823529413" alpha="1" colorSpace="calibratedRGB"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" relation="lessThanOrEqual" constant="300" id="4pZ-Sf-nNE"/>
                                                     </constraints>
                                                 </imageView>
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xsc-dr-KSk">
+                                                    <rect key="frame" x="335" y="0.0" width="50" height="50"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="50" id="8mu-87-8PH"/>
+                                                        <constraint firstAttribute="height" constant="50" id="svu-3s-i7u"/>
+                                                    </constraints>
+                                                    <color key="tintColor" red="0.13725490200000001" green="0.19215686269999999" blue="0.2470588235" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <state key="normal" image="CircledPlay"/>
+                                                </button>
                                                 <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ybz-Uk-Vj5">
                                                     <rect key="frame" x="345" y="6" width="10" height="18"/>
                                                     <constraints>
@@ -734,17 +752,21 @@
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="I3C-dc-yVH" firstAttribute="height" secondItem="Ybz-Uk-Vj5" secondAttribute="height" id="2p2-2t-Xu9"/>
+                                                <constraint firstItem="xsc-dr-KSk" firstAttribute="centerY" secondItem="I3C-dc-yVH" secondAttribute="centerY" constant="10" id="3Gv-To-LyP"/>
                                                 <constraint firstItem="I3C-dc-yVH" firstAttribute="centerY" secondItem="Ybz-Uk-Vj5" secondAttribute="centerY" id="EAO-3b-IK3"/>
                                                 <constraint firstAttribute="bottom" secondItem="I3C-dc-yVH" secondAttribute="bottom" constant="6" id="UQ8-eb-ZNM"/>
                                                 <constraint firstItem="Ybz-Uk-Vj5" firstAttribute="top" secondItem="aDi-CM-Ngu" secondAttribute="top" constant="6" id="aYg-35-YP8"/>
                                                 <constraint firstAttribute="trailing" secondItem="I3C-dc-yVH" secondAttribute="trailing" constant="15" id="dgl-rS-QK6"/>
+                                                <constraint firstItem="xsc-dr-KSk" firstAttribute="centerX" secondItem="I3C-dc-yVH" secondAttribute="centerX" constant="10" id="p3c-S8-6d5"/>
                                                 <constraint firstItem="I3C-dc-yVH" firstAttribute="width" secondItem="Ybz-Uk-Vj5" secondAttribute="width" constant="10" id="yHV-dg-HjV"/>
                                                 <constraint firstItem="I3C-dc-yVH" firstAttribute="centerX" secondItem="Ybz-Uk-Vj5" secondAttribute="centerX" id="yPr-a1-Wz7"/>
                                             </constraints>
                                         </tableViewCellContentView>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         <connections>
                                             <outlet property="message" destination="Ybz-Uk-Vj5" id="sXY-xE-VeJ"/>
                                             <outlet property="messageBackground" destination="I3C-dc-yVH" id="MHO-Ec-W7x"/>
+                                            <outlet property="playBtn" destination="xsc-dr-KSk" id="B2p-WW-SzT"/>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>
@@ -965,7 +987,7 @@
                             </collectionViewFlowLayout>
                             <cells>
                                 <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Cell" id="us7-Oh-k7B" customClass="ContactsCVCell" customModule="Chat" customModuleProvider="target">
-                                    <rect key="frame" x="0.0" y="18" width="120" height="123"/>
+                                    <rect key="frame" x="0.0" y="17.5" width="120" height="123"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
                                         <rect key="frame" x="0.0" y="0.0" width="120" height="123"/>
@@ -1237,6 +1259,7 @@
         </scene>
     </scenes>
     <resources>
+        <image name="CircledPlay" width="72" height="72"/>
         <image name="background" width="375" height="667"/>
         <image name="button" width="60" height="20"/>
         <image name="close" width="25" height="25"/>

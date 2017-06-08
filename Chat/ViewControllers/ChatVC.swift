@@ -13,6 +13,7 @@ import Firebase
 import CoreLocation
 import AVFoundation
 import Letters
+import AVKit
 
 class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate,  UINavigationControllerDelegate, UIImagePickerControllerDelegate, CLLocationManagerDelegate,AVAudioRecorderDelegate {
     
@@ -28,6 +29,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
             return self.inputBar
         }
     }
+    var nameDictonary = [Int:String]()
     var  audioRecorder:AVAudioRecorder?
     override var canBecomeFirstResponder: Bool{
         return true
@@ -41,6 +43,8 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     var currentGroup:Group?
     var canSendLocation = true
     var userLoginInfo:User?
+    var sendTo : String?
+    var clickMessage : GroupMessage?
     
 
     //MARK: Methods
@@ -92,11 +96,20 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     
     func composeMessage(type: MessageType, content: Any)  {
         
-        let groupMessage = GroupMessage.init(owner: .sender, type: type, content: content, groupId: currentUser!, timestamp: Int(Date().timeIntervalSince1970), fromID: currentUser!)
-        GroupMessage.send(message: groupMessage, toID: (currentGroup?.gSendTo)!) { (_) in
-            
+        if let id = Auth.auth().currentUser?.uid {
+        
+        let groupMessage = GroupMessage.init(owner: .sender, type: type, content: content, groupId: currentUser!, timestamp: Int(Date().timeIntervalSince1970), fromID: id, imagePath: "")
+            if let sendTo = currentGroup?.gSendTo{
+                GroupMessage.send(message: groupMessage, toID: (currentGroup?.gSendTo)!) { (_) in
+                    
+                }
+            }else{
+                GroupMessage.send(message: groupMessage, toID: sendTo!) { (_) in
+                    
+                }
+            }
+        
         }
-
         
         
         
@@ -143,6 +156,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         let status = PHPhotoLibrary.authorizationStatus()
         if (status == .authorized || status == .notDetermined) {
             self.imagePicker.sourceType = .savedPhotosAlbum;
+            self.imagePicker.mediaTypes = ["public.image", "public.movie"]
             self.present(self.imagePicker, animated: true, completion: nil)
         }
         
@@ -282,6 +296,36 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         }
     }
     
+    func handlePlay(_ sender: UIButton) {
+            var index = sender.tag
+        
+        if let videoUrlString = self.items[index].content as? String, let url = URL(string: videoUrlString) {
+        //let videoURL = URL(string: "https://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4")
+        let player = AVPlayer(url: url)
+        let playerViewController = AVPlayerViewController()
+        playerViewController.player = player
+        self.present(playerViewController, animated: true) {
+            playerViewController.player!.play()
+        }
+        
+        }
+        
+//        if let videoUrlString = message?.videoUrl, let url = URL(string: videoUrlString) {
+//            player = AVPlayer(url: url)
+//            
+//            playerLayer = AVPlayerLayer(player: player)
+//            playerLayer?.frame = bubbleView.bounds
+//            bubbleView.layer.addSublayer(playerLayer!)
+//            
+//            player?.play()
+//            activityIndicatorView.startAnimating()
+//            playButton.isHidden = true
+//            
+//            print("Attempting to play video......???")
+//        }
+    }
+
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         switch self.items[indexPath.row].owner {
         case .receiver:
@@ -290,11 +334,14 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
             switch self.items[indexPath.row].type {
             case .text:
                 cell.message.text = self.items[indexPath.row].content as! String
+              //  cell.message.backgroundColor = UIColor(red: 228/255, green: 253/255, blue: 198/255, alpha: 1)
             case .photo:
                 if let image = self.items[indexPath.row].image {
                     cell.messageBackground.image = image
                     cell.message.isHidden = true
+                    cell.playBtn.isHidden = true
                 } else {
+                     cell.playBtn.isHidden = true
                     cell.messageBackground.image = UIImage.init(named: "loading")
                     self.items[indexPath.row].downloadImage(indexpathRow: indexPath.row, completion: { (state, index) in
                         if state == true {
@@ -307,10 +354,31 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
             case .location:
                 cell.messageBackground.image = UIImage.init(named: "location")
                 cell.message.isHidden = true
+                cell.playBtn.isHidden = true
                 
             case .audio:
                 break
             case .video:
+                if let image = self.items[indexPath.row].image {
+                    cell.messageBackground.image = image
+                    cell.message.isHidden = true
+                    cell.playBtn.isHidden = false
+                } else {
+                    cell.messageBackground.image = UIImage.init(named: "loading")
+                   // cell.videoView.isHidden = true
+                    cell.playBtn.isHidden = false
+                    cell.playBtn.tag = indexPath.item
+                    cell.playBtn.addTarget(self, action: #selector(ChatVC.handlePlay), for: .touchUpInside)
+                    
+                    self.items[indexPath.row].downloadImage(indexpathRow: indexPath.row, completion: { (state, index) in
+                        if state == true {
+                            DispatchQueue.main.async {
+                                self.tableView.reloadData()
+                            }
+                        }
+                    })
+                }
+                
                 break
                 
             }
@@ -318,19 +386,36 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
         case .sender:
             let cell = tableView.dequeueReusableCell(withIdentifier: "Sender", for: indexPath) as! SenderCell
             cell.clearCellData()
-            if let userLoginInfo = self.userLoginInfo{
-                cell.profilePic.setImage(string: userLoginInfo.name, color: UIColor(red: 134/255, green: 139/255, blue: 254/255, alpha: 1), circular: true)
+            if let userName =  self.nameDictonary[indexPath.item]{
+                cell.profilePic.setImage(string: userName, color: UIColor(red: 134/255, green: 139/255, blue: 254/255, alpha: 1), circular: true)
+            
+            }else{
+                fetchUser(userID: self.items[indexPath.row].fromID, completion: { [weak weakSelf = self] (user) in
+                    DispatchQueue.main.async {
+                        
+                        cell.profilePic.setImage(string: user.name, color: UIColor(red: 134/255, green: 139/255, blue: 254/255, alpha: 1), circular: true)
+                    }
+                    self.nameDictonary[indexPath.item] = user.name
+                })
             }
+            
+           // fetchUser(userID: self.items[indexPath.row].fromID,completion: )
+//            if let userLoginInfo = self.userLoginInfo{
+//               
+//            }
             
            // cell.profilePic.image = UIImage.init(named: "default profile")
             switch self.items[indexPath.row].type {
             case .text:
                 cell.message.text = self.items[indexPath.row].content as! String
+               // cell.message.backgroundColor = UIColor(red: 255/255, green: 255/255, blue: 255/255, alpha: 1)
             case .photo:
                 if let image = self.items[indexPath.row].image {
                     cell.messageBackground.image = image
                     cell.message.isHidden = true
+                    cell.playBtn.isHidden = true
                 } else {
+                    cell.playBtn.isHidden = true
                     cell.messageBackground.image = UIImage.init(named: "loading")
                     self.items[indexPath.row].downloadImage(indexpathRow: indexPath.row, completion: { (state, index) in
                         if state == true {
@@ -343,16 +428,42 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
             case .location:
                 cell.messageBackground.image = UIImage.init(named: "location")
                 cell.message.isHidden = true
-                
+                cell.playBtn.isHidden = true
             case .audio:
                 break
             case .video:
+                
+                
+                
+                
+                if let image = self.items[indexPath.row].image {
+                    cell.messageBackground.image = image
+                    cell.message.isHidden = true
+                    cell.playBtn.isHidden = false
+                } else {
+                    cell.playBtn.isHidden = false
+                    cell.messageBackground.image = UIImage.init(named: "loading")
+                  //  cell.videoView.isHidden = true
+                    cell.playBtn.tag = indexPath.item
+                    cell.playBtn.addTarget(self, action: #selector(ChatVC.handlePlay), for: .touchUpInside)
+                    
+                   self.items[indexPath.row].downloadImage(indexpathRow: indexPath.row, completion: { (state, index) in
+                        if state == true {
+                            DispatchQueue.main.async {
+                                self.tableView.reloadData()
+                            }
+                        }
+                    })
+                }
+                
                 break
                 
             }
             return cell
         }
     }
+    
+
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.inputTextField.resignFirstResponder()
@@ -381,9 +492,14 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         if let pickedImage = info[UIImagePickerControllerEditedImage] as? UIImage {
             self.composeMessage(type: .photo, content: pickedImage)
-        } else {
-            let pickedImage = info[UIImagePickerControllerOriginalImage] as! UIImage
+        } else if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage{
+            
             self.composeMessage(type: .photo, content: pickedImage)
+        }else if let videoURL = info[UIImagePickerControllerMediaURL]as? NSURL{
+            
+            
+            self.composeMessage(type: .video, content: videoURL)
+            
         }
         picker.dismiss(animated: true, completion: nil)
     }
@@ -394,7 +510,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
             if self.canSendLocation {
                 let coordinate = String(lastLocation.coordinate.latitude) + ":" + String(lastLocation.coordinate.longitude)
                 
-                let groupMessage = GroupMessage.init(owner: .sender, type: .location, content: coordinate, groupId: currentUser!, timestamp: Int(Date().timeIntervalSince1970), fromID: currentUser!)
+                let groupMessage = GroupMessage.init(owner: .sender, type: .location, content: coordinate, groupId: currentUser!, timestamp: Int(Date().timeIntervalSince1970), fromID: currentUser!, imagePath: "")
                 GroupMessage.send(message: groupMessage, toID: (currentGroup?.gSendTo)!) { (_) in
                     
                 }
@@ -424,17 +540,25 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        let tempImageView = UIImageView(image: UIImage(named: "back-1"))
+        tempImageView.frame = self.tableView.frame
+        tempImageView.alpha = 0.3
+        self.tableView.backgroundView = tempImageView
         self.customization()
-        self.fetchUser()
+       // self.fetchUser()
         self.fetchData()
     }
-    func fetchUser() {
+    func fetchUser(userID:String,completion: @escaping (User) -> Swift.Void) {
         
-         if let id = Auth.auth().currentUser?.uid {
+         //if let id = Auth.auth().currentUser?.uid {
             
-        User.info(forUserID: id, completion: { (user) in
+        User.info(forUserID: userID, completion: { (user) in
             
-            self.userLoginInfo = user
+          //  self.userLoginInfo = user
+//            DispatchQueue.main.async {
+//                self.tableView.reloadData()
+//            }
+            completion(user)
             
 //            let emptyMessage = Message.init(type: .text, content: "loading", owner: .sender, timestamp: 0, isRead: true)
 //            let conversation = Conversation.init(user: user, lastMessage: emptyMessage)
@@ -443,7 +567,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UITe
 //                completion(conversations)
 //            })
         })
-        }
+        //}
 
 
     }

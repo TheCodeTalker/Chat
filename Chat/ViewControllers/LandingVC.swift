@@ -36,7 +36,7 @@ class LandingVC: UIViewController {
         if let userInformation = UserDefaults.standard.dictionary(forKey: "userInformation") {
             let email = userInformation["email"] as! String
             let password = userInformation["password"] as! String
-            User.loginUser(withEmail: email, password: password, completion: { [weak weakSelf = self] (status) in
+            User.loginUser(withEmail: email, password: password, completion: { [weak weakSelf = self] (status,error) in
                 DispatchQueue.main.async {
                     if status == true {
                         weakSelf?.pushTo(viewController: .conversations)

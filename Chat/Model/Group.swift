@@ -29,14 +29,14 @@ class Group: NSObject {
     class func createGroup(withName:String,userIds:String,creatorID:String, completion:@escaping (Bool,String?,String?) -> Swift.Void){
         
         if let currentUserID = Auth.auth().currentUser?.uid {
-             let values = ["name": withName, "admin": creatorID, "sendTo": userIds]
             let members = userIds.components(separatedBy: ",")
+             let values = ["name": withName, "admin": creatorID, "sendTo": userIds,"member":members] as [String : Any]
             
             
             Database.database().reference().child("groups").childByAutoId().setValue(values, withCompletionBlock: { (error, reference) in
                 
                 if error == nil{
-                    Database.database().reference().child("groups").child(reference.key).child("member").setValue(members)
+                  //  Database.database().reference().child("groups").child(reference.key).child("member").setValue(members)
                     completion(true,reference.key,withName)
                 }else{
                     completion(false,nil,nil)
@@ -51,7 +51,8 @@ class Group: NSObject {
         if let currentUserID = Auth.auth().currentUser?.uid {
             var conversations = [Group]()
             
-            Database.database().reference().child("groups").queryOrdered(byChild: "member").queryEqual(toValue: currentUserID).observe(.value, with: { snapshot in
+            Database.database().reference().child("groups").observe(.value, with: { snapshot in
+                print(snapshot)
                 if  let value = snapshot.value as? NSDictionary {
                     
                     for (index,element) in value.enumerated(){
@@ -61,8 +62,11 @@ class Group: NSObject {
                             let admin = value["admin"] as? String ?? ""
                             let member = value["member"] as? [String] ?? [""]
                             let memberString = value["sendTo"] as? String ?? ""
-                            let group = Group.init(gName: gName, gId: element.key as! String, gAdmin: admin, gMember: member, gSendTo: memberString)
-                            conversations.append(group)
+                            if member.contains(currentUserID){
+                                let group = Group.init(gName: gName, gId: element.key as! String, gAdmin: admin, gMember: member, gSendTo: memberString)
+                                conversations.append(group)
+                            }
+                            
                         }
                         print(element)
                     }
